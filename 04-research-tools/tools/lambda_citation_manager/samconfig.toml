@@ -1,0 +1,20 @@
+version = 0.1
+
+[default.build.parameters]
+use_container = false
+cached = true
+parallel = true
+
+[default.deploy.parameters]
+stack_name = "research-agent-stack"
+s3_prefix = "research-agent-stack"
+region = "ap-southeast-2"
+confirm_changeset = true
+capabilities = "CAPABILITY_IAM"
+parameter_overrides = "EnvironmentName=\"dev\""
+resolve_s3 = true
+disable_rollback = true
+image_repositories = []
+
+[default.global.parameters]
+region = "ap-southeast-2"

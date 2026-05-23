@@ -1,0 +1,76 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: Citation Manager Lambda Deployment
+
+Parameters:
+  EnvironmentName:
+    Type: String
+    Default: dev
+    Description: Environment name (dev, staging, prod)
+    AllowedValues:
+      - dev
+      - staging
+      - prod
+
+Globals:
+  Function:
+    Timeout: 30
+    MemorySize: 256
+    Runtime: python3.11
+    Environment:
+      Variables:
+        ENVIRONMENT: !Ref EnvironmentName
+        LOG_LEVEL: INFO
+
+Resources:
+  # Lambda Function
+  CitationManagerFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub citation-manager-${EnvironmentName}
+      Handler: lambda_handler.handler
+      CodeUri: ./
+      Description: Manage research citations in APA, MLA, and Chicago formats
+      Architectures:
+        - x86_64
+      Policies:
+        - CloudWatchLogsFullAccess
+
+  # Lambda Function for Health Check
+  CitationManagerHealthFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub citation-manager-health-${EnvironmentName}
+      Handler: lambda_handler.health_check
+      CodeUri: ./
+      Description: Health check for citation manager
+      Architectures:
+        - x86_64
+      Policies:
+        - CloudWatchLogsFullAccess
+
+  # CloudWatch Log Group
+  CitationManagerLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub /aws/lambda/citation-manager-${EnvironmentName}
+      RetentionInDays: 7
+
+Outputs:
+  FunctionArn:
+    Description: Citation Manager Lambda Function ARN
+    Value: !GetAtt CitationManagerFunction.Arn
+    Export:
+      Name: !Sub ${AWS::StackName}-FunctionArn
+
+  FunctionName:
+    Description: Citation Manager Lambda Function Name
+    Value: !Ref CitationManagerFunction
+    Export:
+      Name: !Sub ${AWS::StackName}-FunctionName
+
+  HealthFunctionArn:
+    Description: Health Check Lambda Function ARN
+    Value: !GetAtt CitationManagerHealthFunction.Arn
+    Export:
+      Name: !Sub ${AWS::StackName}-HealthFunctionArn
